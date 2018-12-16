@@ -1,0 +1,24 @@
+FILE=$1
+REVS=`git log ${FILE} | grep commit | cut -d ' ' -f 2`
+REVS_ARRAY=()
+SHOW_ARRAY=()
+i=0
+REVS_ARRAY=()
+for rev in $REVS; do 
+	SHOW=`git show --quiet --format="%Cgreen-- %cr %Cred[%cn] %Cgreen[%s]"  ${rev} ${FILE}`
+       	printf "%d $SHOW\n" $i
+	REVS_ARRAY[${i}]=${rev}
+	SHOW_ARRAY[${i}]=${SHOW}
+	i=$((i + 1))
+done
+while [ 1 ]
+do
+	echo
+	echo
+	echo Select the commits diff to show
+	read -r -p 'Select first commit' FROM
+	read -r -p 'Select second commit' TO 
+	echo Showing diff from: ${FROM} ${REVS_ARRAY[$FROM]} ${SHOW_ARRAY[${FROM}]}
+	echo Showing diff to: ${TO} ${REVS_ARRAY[$TO]} ${SHOW_ARRAY[${TO}]}
+	git difftool -y ${REVS_ARRAY[$TO]} ${REVS_ARRAY[$FROM]} $FILE 
+done

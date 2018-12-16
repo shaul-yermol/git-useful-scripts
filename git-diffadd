@@ -1,0 +1,46 @@
+#!/bin/bash -x
+
+#
+#    Created by Shaul Yermol 2018 
+#    Copyright © 2018 Shaul Yemrol shaul.yermol@gmail.com. All rights reserved.
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+((!$#)) && echo No file name, command ignored! && exit 1
+
+IFS=$(echo -en "\n\b")
+echo diffadd ${1}
+INPATH="${1}"
+
+if [[ -f "${INPATH}" ]]; then 
+    git difftool -y "$INPATH" && git add -u $INPATH
+elif [[ -d "${INPATH}" ]]; then
+    for FILE in `git status --porcelain "${INPATH}" | grep -e '^AM' -e '^ M' -e '^ AM' | cut -c 4-1000`; do
+	echo $FILE
+	FILE=$( echo "$FILE" | sed 's/\"//g' )
+	FILE=$(printf %q "$FILE")
+	echo $FILE
+	git difftool -y -- $FILE 
+	read -p "Add ${FILE}? y/n" -n 1 -r
+	# echo  # (optional) move to a new line
+	if [[ $REPLY =~ ^[Yy]$ ]]
+	then
+    	# do dangerous stuff
+	    git add -u $FILE ;
+	fi
+    done
+else
+    echo "${INPATH}" is not a valid file or directory
+    exit 1
+fi
